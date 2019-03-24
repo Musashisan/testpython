@@ -8,6 +8,19 @@ Created on 17 feb. 2019
 import cv2
 import numpy as np
 import win32gui, win32ui, win32con
+import re
+
+def find_dialog_wildcard(window_name_regexp):
+        ''' Enumerate all the dialog to find the dialog which title matches the title'''              
+        def callback(hwnd, window_name_regexp):
+            if win32gui.IsWindowVisible(hwnd):
+                title = win32gui.GetWindowText(hwnd)
+                if (re.search(window_name_regexp, title)):
+                    print(title)
+            return True
+        win32gui.EnumWindows(callback, window_name_regexp)
+
+        
 
 def grab_screen(window_name):
 
