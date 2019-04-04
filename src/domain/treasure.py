@@ -10,6 +10,8 @@ class Treasure(object):
     '''
     classdocs
     '''
+    position: Position = None
+    type: TreasureType = None
 
     def __init__(self, treasure_type: TreasureType, position = Position):
         '''

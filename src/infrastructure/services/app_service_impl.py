@@ -13,12 +13,14 @@ import re
 
 from domain.position import Position
 from builtins import int
+from domain.ioc import RequiredFeature, IsInstanceOf
+import time
 
 class AppServiceImpl(AppService):
     '''
     classdocs
     '''
-
+    
     def __init__(self, window_name: str):
         '''
         Constructor
@@ -57,18 +59,22 @@ class AppServiceImpl(AppService):
         win32gui.ReleaseDC(self._handler, self.handlerdc)
         win32gui.DeleteObject(bmp.GetHandle())
 
-    def grab_screen(self) -> Screen:       
+    def update_screen(self, screen: Screen) -> Screen:
         self._update_screen()
-        position = Position(self.left, self.top)
-        screen = Screen(position, self.width, self.height)
-        screen.img = cv2.cvtColor(self._img, cv2.COLOR_BGRA2RGB)
+        screen.configure(Position(self.left, self.top), self.width, self.height)
+        #screen.img = cv2.cvtColor(self._img, cv2.COLOR_BGRA2RGB)
+        screen.img = cv2.cvtColor(self._img, cv2.COLOR_BGR2GRAY)
+        
         return screen
 
     def left_click(self, position: Position) -> None:
+#        win32gui.SetActiveWindow(self._handler)
         lParam = win32api.MAKELONG(position.x, position.y)
-#        win32api.SendMessage(hwndChild, win32con.WM_MOUSEMOVE,0,lParam)
+        win32api.SendMessage(self._handler, win32con.WM_MOUSEMOVE,0,lParam)
+        time.sleep(0.2)
         win32api.SendMessage(self._handler, win32con.WM_LBUTTONDOWN, win32con.MK_LBUTTON, lParam)
-        win32api.SendMessage(self._handler, win32con.WM_LBUTTONUP, win32con.MK_LBUTTON, lParam)
+        time.sleep(0.1)
+        win32api.SendMessage(self._handler, win32con.WM_LBUTTONUP, 0, lParam)
 
     def _find_dialog_wildcard(self,window_name_regexp):
         ''' Enumerate all the dialog to find the dialog which title matches the title'''              

@@ -28,7 +28,7 @@ class AppService(ABC):
         pass
     
     @abstractmethod
-    def grab_screen(self) -> Screen:
+    def update_screen(self, screen: Screen) -> Screen:
         pass
 
     @abstractmethod
