@@ -13,4 +13,6 @@ class Village(object):
     collect: Position = None
     
     upgrade: Position = None
+    
+    prompt_advertise: bool = False
 

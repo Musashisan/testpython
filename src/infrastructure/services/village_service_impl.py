@@ -14,6 +14,7 @@ from domain.treaseure_type import TreasureType
 from matplotlib import pyplot as plt
 
 TEMPLATES = [{"name":"treasure","file":"treasure.jpg"},{"name":"golden","file":"golden_treasure.jpg"}]
+OTHER_TEMPLATES = [{"name":"prompt_advertise","file":"prompt_advertise.jpg"}]
 #TEMPLATES = ["collect.jpg","golden_treasure.jpg","treasure.jpg"]
 
 class VillageServiceImpl(VillageService):
@@ -27,6 +28,7 @@ class VillageServiceImpl(VillageService):
         Constructor
         '''
         self.template_images = []
+        self.template_other_images = []
         self._load_templates()
 
     def _load_templates(self):
@@ -40,9 +42,23 @@ class VillageServiceImpl(VillageService):
             else:
                 #cv2.imshow("{0}".format(template),img)
                 self.template_images.append({"name":template["name"],"image":img})
+        for template in OTHER_TEMPLATES:
+            img = cv2.imread(file_path + '/'+template["file"], cv2.IMREAD_GRAYSCALE)
+            #img = cv2.imread(file_path + '/'+template, cv2.IMREAD_COLOR)
+            print(cv2.IMREAD_COLOR)
+            if (img is None):
+                print("Template image '{}' notloaded".format(template))
+            else:
+                #cv2.imshow("{0}".format(template),img)
+                self.template_other_images.append({"name":template["name"],"image":img})                
         
     def get_status(self, screen: Screen) -> Village:
         village = Village()
+        self._get_treasure(screen, village)
+        self._get_other(screen, village)
+        return village
+    
+    def _get_treasure(self, screen: Screen, village: Village):
     #    methods = ['cv2.TM_CCOEFF', 'cv2.TM_CCOEFF_NORMED', 'cv2.TM_CCORR', 'cv2.TM_CCORR_NORMED', 'cv2.TM_SQDIFF', 'cv2.TM_SQDIFF_NORMED']    
         method = cv2.TM_CCOEFF
         for template in self.template_images:
@@ -57,11 +73,11 @@ class VillageServiceImpl(VillageService):
                 cv2.rectangle(screen.img,top_left, bottom_right, 255, 2)
                 village.treasure = Treasure(TreasureType.SIMPLE, Position(top_left[0]+int(w/2), top_left[1]+int(h/2)))
                 print("treasure '{0}'".format(village.treasure.position))
-            elif template["name"] == "golden" and max_val > 3420000:
+            elif template["name"] == "golden"  and max_val > 3100000:
                 print(max_val)
                 village.treasure = Treasure(TreasureType.ADVERTISE, Position(top_left[0]+int(w/2), top_left[1]+int(h/2)))
                 cv2.rectangle(screen.img,top_left, bottom_right, 255, 2)
-                print("golden '{0}'".format(village.treasure.position))
+                print("golden '{0}'".format(village.treasure.position))            
 
             #plt.subplot(121),plt.imshow(res,cmap = 'gray')
             #plt.title('Matching Result'), plt.xticks([]), plt.yticks([])
@@ -69,6 +85,20 @@ class VillageServiceImpl(VillageService):
             #plt.title('Detected Point'), plt.xticks([]), plt.yticks([])
             #plt.suptitle('TM_CCOEFF')
             #plt.show()
-                
-        return village
-        
+
+    def _get_other(self, screen: Screen, village: Village):
+    #    methods = ['cv2.TM_CCOEFF', 'cv2.TM_CCOEFF_NORMED', 'cv2.TM_CCORR', 'cv2.TM_CCORR_NORMED', 'cv2.TM_SQDIFF', 'cv2.TM_SQDIFF_NORMED']    
+        method = cv2.TM_CCOEFF
+        for template in self.template_other_images:
+            res = cv2.matchTemplate(screen.img,template["image"],method)
+            min_val, max_val, min_loc, max_loc = cv2.minMaxLoc(res)
+            top_left = (max_loc[0], max_loc[1])
+            #h, w, channels = template.shape
+            h, w = template["image"].shape
+            bottom_right = (top_left[0] + w, top_left[1] + h)
+            if template["name"] == "prompt_advertise" and max_val > 110000000:
+                print(max_val)
+                cv2.rectangle(screen.img,top_left, bottom_right, 255, 2)
+                village.prompt_advertise = True
+            else:
+                village.prompt_advertise = False
